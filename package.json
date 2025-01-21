@@ -1,0 +1,24 @@
+{
+  "name": "electronic-election",
+  "version": "1.0.0",
+  "description": "this is the application which try to help the user to vote online like In an electronic voting scheme there are two distinct types of participants: the ",
+  "main": " votes and the voting authority (for short, the authority) ",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ha-sh-t/Electronic-Election.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Ha-sh-t/Electronic-Election/issues"
+  },
+  "homepage": "https://github.com/Ha-sh-t/Electronic-Election#readme",
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "type": "module"
+}
