@@ -10,10 +10,6 @@ const connectToMongoDB = async ()=> {
                         .then(clientInstance => {
                             console.log("mongodb is connected ..")
                             client  = clientInstance;
-                            const db = client.db("gettingS")
-                            const col = db.collection("vote")
-
-                            col.insertOne({"user":"amit" , "vote":1})
                         })
                         .catch(err =>{
                             console.log(err)
