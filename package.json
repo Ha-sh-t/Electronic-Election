@@ -17,7 +17,14 @@
   },
   "homepage": "https://github.com/Ha-sh-t/Electronic-Election#readme",
   "dependencies": {
-    "express": "^4.21.2"
+    "big-integer": "^1.6.52",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongodb": "4.0",
+    "mongoose": "^8.9.5",
+    "nodemon": "^3.1.9"
   },
   "type": "module"
 }
