@@ -1,24 +1,19 @@
-import { MongoClient } from "mongodb";
+import mongoose from "mongoose";
 
+const connectDB = async () => {
+  try {
+    await mongoose.connect(
+      "mongodb+srv://777harshitkumar:38BN4nwzcBGqmJbR@cluster0.bwecn.mongodb.net/<dbname>?retryWrites=true&w=majority&tls=true",
+      {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      }
+    );
+    console.log("MongoDB connected successfully!");
+  } catch (err) {
+    console.error("MongoDB connection error:", err);
+    process.exit(1); // Exit the process with failure
+  }
+};
 
-//getting url
-const url = "mongodb+srv://777harshitkumar:38BN4nwzcBGqmJbR@cluster0.bwecn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-let client;
-
-const connectToMongoDB = async ()=> {
-                        MongoClient.connect(url) //return a promise
-                        .then(clientInstance => {
-                            console.log("mongodb is connected ..")
-                            client  = clientInstance;
-                            const db = client.db("gettingS")
-                            const col = db.collection("vote")
-
-                            col.insertOne({"user":"amit" , "vote":1})
-                        })
-                        .catch(err =>{
-                            console.log(err)
-                        })
-                    }
-
-console.log(connectToMongoDB)
-export default connectToMongoDB;
+module.exports = connectDB;
