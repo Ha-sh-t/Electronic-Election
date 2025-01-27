@@ -1,4 +1,4 @@
-import { decryptVote, encryptVote, PRIME, PRIVATE_KEY, PUBLIC_KEY, splitSecret } from "../../middlewares/elgamel.encrypt.js";
+import { decryptVotes, encryptVote, PRIME, PRIVATE_KEY, PUBLIC_KEY, sharedKeys } from "../../middlewares/elgamel.encrypt.js";
 import VotesRepository from "./votes.repository.js";
 
 export default class VotesController {
@@ -36,8 +36,8 @@ export default class VotesController {
     homomorphicTallying(votes) {
         const aggregated = votes.reduce(
             (acc, { c1, c2 }) => ({
-                c1: (acc.c1 * c1)%this.prime,
-                c2: (acc.c2 * c2) %this.prime,
+                c1: (acc.c1 * c1),
+                c2: (acc.c2 * c2) ,
             }),
             { c1: 1, c2: 1 }
         );
@@ -58,16 +58,15 @@ export default class VotesController {
             const t = 3; 
 
             // Split the secret for partial decryption
-            const sharedKeys = splitSecret(this.secretKey, n, t, this.prime);
             console.log("shared keys :" , sharedKeys)
-
+            
             const partialDecryptions = sharedKeys.slice(0, t).map(share => ({
                 share: share,
             }));
             console.log("partialDecryption: ",partialDecryptions);
 
             // Decrypt the aggregated result
-            const tally = decryptVote(aggregated, partialDecryptions);
+            const tally = decryptVotes(votes, partialDecryptions);
             res.json({ success: true, tally }); // Return the tally
         } catch (err) {
             console.error(err);

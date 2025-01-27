@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 
 //getting url
-const url = "mongodb+srv://777harshitkumar:38BN4nwzcBGqmJbR@cluster0.bwecn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+const url = "mongodb+srv://777harishitkumar:6F2Au9llrteQo4Dm@cluster0.bwecn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 let client;
 
 const connectToMongoose = async () => {

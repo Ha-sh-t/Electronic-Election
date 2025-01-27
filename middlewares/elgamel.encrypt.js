@@ -9,6 +9,7 @@ export const PUBLIC_KEY = {}
 export const PRIVATE_KEY = {}
 export function encryptVote(vote, publicKey) {
     const alpha = crypto.randomInt(1, PRIME - 1);//random value  from feild of PRIME 
+    console.log(alpha)
     const c1 = mod(pow(publicKey.g, alpha), PRIME); //c1 = (g^alpha) % q 
     const c2 = mod(pow(publicKey.h, alpha) * vote, PRIME);//h is public key
 
@@ -17,7 +18,7 @@ export function encryptVote(vote, publicKey) {
 
 export function generateKey() {
     const g = 3 //generator , primitive root with modulo q = 7
-    const s = crypto.randomInt(1, PRIME - 1);//private key
+    const s = 3;//private key
     console.log("s:",s)
     const h = mod(pow(g, s) ,PRIME);//public key
     console.log("h:" ,h)
@@ -113,13 +114,32 @@ function invmod(a, m) {
     return x1;
 }
 
-export function decryptVote(encrypted, partialDecryptions) {
-    // Combine the partial decryptions to compute c1
-    const combinedC1 = partialDecryptions.reduce((acc, { share }) => {
-        return (acc * modPow(Number(encrypted.c1), share, PRIME)) % PRIME;
-    }, 1); // Starting with 1 as the initial accumulator value
+export function decryptVotes(encryptedVotes, partialDecryptions) {
+    let tally = 0; // Initialize tally
 
-    // Decrypt c2 using the modular inverse of combinedC1
-    return (encrypted.c2 * invmod(combinedC1, PRIME)) % PRIME;
+    // Decrypt each encrypted vote and update the tally
+    encryptedVotes.forEach((encrypted) => {
+        // Combine the partial decryptions to compute c1
+        const combinedC1 = partialDecryptions.reduce((acc, { share }) => {
+            return (acc * modPow(Number(encrypted.c1), share[1], PRIME)) % PRIME;
+        }, 1); // Starting with 1 as the initial accumulator value
+
+        // Decrypt c2 using the modular inverse of combinedC1
+        const decryptedVote = (encrypted.c2 * invmod(combinedC1, PRIME)) % PRIME;
+
+        // Since the decrypted vote should be either 1 or -1, add or subtract it to the tally
+        if (decryptedVote == 1) {
+            tally += 1; // Add 1 for "Yes"
+        } else if (decryptedVote == -1) {
+            tally -= 1; // Subtract 1 for "No"
+        }
+    });
+
+    return tally;
 }
+
+
+
+
 generateKey();
+export const sharedKeys = splitSecret(PRIVATE_KEY, 5, 3, PRIME);
