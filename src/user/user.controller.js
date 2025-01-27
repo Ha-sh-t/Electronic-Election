@@ -15,7 +15,7 @@ export default class UserController{
             {
                 expiresIn:"1h"
             });
-            req.cookies.userId = email;
+            res.cookie("userId" , email);
             //2.send token , which work as key to access the authenticated pages
             return res.status(200).send(token);
         }

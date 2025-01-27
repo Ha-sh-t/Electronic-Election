@@ -4,7 +4,7 @@ import {
     pow
 } from 'mathjs';
 
-export const PRIME = 7919;
+export const PRIME = 11;
 export const PUBLIC_KEY = {}
 export const PRIVATE_KEY = {}
 export function encryptVote(vote, publicKey) {
@@ -18,7 +18,9 @@ export function encryptVote(vote, publicKey) {
 export function generateKey() {
     const g = 3 //generator , primitive root with modulo q = 7
     const s = crypto.randomInt(1, PRIME - 1);//private key
-    const h = mod(pow(g, s), PRIME);//public key
+    console.log("s:",s)
+    const h = mod(pow(g, s) ,PRIME);//public key
+    console.log("h:" ,h)
 
 
     PUBLIC_KEY.g = g;
@@ -31,16 +33,35 @@ export function generateKey() {
 
 
 
+
 // Shamir's Secret Sharing: Split the private key
-export function splitSecret(secret, n, t, prime) {
-    const coefficients = [secret, ...Array(t - 1).fill().map(() => crypto.randomInt(1, prime - 1))];
+export function splitSecret({ s }, n, t, prime) {
+    console.log("params :", s, n, t, prime);
+
+    // Generate the coefficients: secret + random coefficients
+    const coefficients = [s, ...Array(t - 1).fill().map(() => crypto.randomInt(1, prime - 1))];
+    console.log("Coefficients:", coefficients);
+
     const shares = [];
+
+    // Iterate over the share indices to compute shares
     for (let i = 1; i <= n; i++) {
-        let y = coefficients.reduce((acc, coeff, index) => acc + coeff * pow(i, index), 0);
-        shares.push([i, mod(y, prime)]);
+        let y = 0;
+
+        // Compute y using a loop to evaluate the polynomial
+        for (let index = 0; index < coefficients.length; index++) {
+            const term = coefficients[index] * Math.pow(i, index); // a_k * x^k
+            y += term;
+        }
+
+        // Reduce y modulo prime
+        y = ((y % prime) + prime) % prime; // Ensure non-negative result
+        shares.push([i, y]);
     }
+
     return shares;
 }
+
 
 // Shamir's Secret Reconstruction
 export function reconstructSecret(shares, prime) {
@@ -60,7 +81,45 @@ export function reconstructSecret(shares, prime) {
 }
 
 // Decrypt a vote (collaborative decryption)
-export function decryptVote(encrypted, partialDecryptions) {
-    const combinedC1 = partialDecryptions.reduce((acc, { share }) => acc * pow(encrypted.c1, share), 1) % PRIME;
-    return mod(encrypted.c2 * invmod(combinedC1, PRIME), PRIME);
+// Helper function for modular exponentiation
+function modPow(base, exponent, mod) {
+    let result = 1;
+    base = base % mod;  // In case base is larger than mod
+
+    while (exponent > 0) {
+        if (exponent % 2 === 1) {
+            result = (result * base) % mod;
+        }
+        exponent = Math.floor(exponent / 2);
+        base = (base * base) % mod;
+    }
+    return result;
 }
+
+// Helper function for modular inverse (using extended Euclidean algorithm)
+function invmod(a, m) {
+    let m0 = m, x0 = 0, x1 = 1;
+    if (m === 1) return 0;
+    while (a > 1) {
+        let q = Math.floor(a / m);
+        let t = m;
+        m = a % m;
+        a = t;
+        t = x0;
+        x0 = x1 - q * x0;
+        x1 = t;
+    }
+    if (x1 < 0) x1 += m0;
+    return x1;
+}
+
+export function decryptVote(encrypted, partialDecryptions) {
+    // Combine the partial decryptions to compute c1
+    const combinedC1 = partialDecryptions.reduce((acc, { share }) => {
+        return (acc * modPow(Number(encrypted.c1), share, PRIME)) % PRIME;
+    }, 1); // Starting with 1 as the initial accumulator value
+
+    // Decrypt c2 using the modular inverse of combinedC1
+    return (encrypted.c2 * invmod(combinedC1, PRIME)) % PRIME;
+}
+generateKey();

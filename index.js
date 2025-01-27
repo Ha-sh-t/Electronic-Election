@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser';
 import express from 'express';
 import { readFileSync } from 'fs';
 import https from 'https';
@@ -10,7 +11,7 @@ import votesRouter from './src/votes/votes.routes.js';
 
 const app = express(); //responsible for request and response
 app.use(express.json());
-
+app.use(cookieParser())
 
 //key and signed certificate--------------------------------
 const options = {

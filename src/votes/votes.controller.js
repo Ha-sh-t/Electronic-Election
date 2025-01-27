@@ -1,4 +1,4 @@
-import { decryptVote, encryptVote, generateKey, PRIME, PRIVATE_KEY, splitSecret } from "../../middlewares/elgamel.encrypt.js";
+import { decryptVote, encryptVote, PRIME, PRIVATE_KEY, PUBLIC_KEY, splitSecret } from "../../middlewares/elgamel.encrypt.js";
 import VotesRepository from "./votes.repository.js";
 
 export default class VotesController {
@@ -10,7 +10,9 @@ export default class VotesController {
 
     async cast(req, res) {
         try {
-            const { vote } = req.body;
+            let { vote } =req.body;
+            vote = Number(vote);
+            console.log(vote);
             if (vote !== 1 && vote !== -1) {
                 return res.status(400).json({ success: false, message: "Invalid vote. Allowed values are 1 or -1." });
             }
@@ -20,8 +22,9 @@ export default class VotesController {
                 return res.status(400).json({ success: false, message: "User not authenticated." });
             }
 
-            const { PUBLIC_KEY } = generateKey(); // Generate encryption keys dynamically
+            console.log(PUBLIC_KEY)
             const encryptedVote = encryptVote(vote, PUBLIC_KEY); // Encrypt the vote
+            console.log(encryptVote);
             await this.votesRepository.add(encryptedVote, userId); // Save encrypted vote to DB
             res.status(201).send({ success: true, message: "Successfully voted." });
         } catch (err) {
@@ -33,8 +36,8 @@ export default class VotesController {
     homomorphicTallying(votes) {
         const aggregated = votes.reduce(
             (acc, { c1, c2 }) => ({
-                c1: (acc.c1 * c1) % this.prime,
-                c2: (acc.c2 * c2) % this.prime,
+                c1: (acc.c1 * c1)%this.prime,
+                c2: (acc.c2 * c2) %this.prime,
             }),
             { c1: 1, c2: 1 }
         );
@@ -49,17 +52,19 @@ export default class VotesController {
             }
 
             const aggregated = this.homomorphicTallying(votes); // Aggregate encrypted votes
-
+            console.log("aggreagted :",aggregated)
             // Example n (participants) and t (threshold) values
             const n = 5; 
             const t = 3; 
 
             // Split the secret for partial decryption
             const sharedKeys = splitSecret(this.secretKey, n, t, this.prime);
+            console.log("shared keys :" , sharedKeys)
 
             const partialDecryptions = sharedKeys.slice(0, t).map(share => ({
                 share: share,
             }));
+            console.log("partialDecryption: ",partialDecryptions);
 
             // Decrypt the aggregated result
             const tally = decryptVote(aggregated, partialDecryptions);
